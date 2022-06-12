@@ -1,0 +1,179 @@
+version: "3.8"
+
+services:
+  zookeeper:
+    image: bitnami/zookeeper:3.8.0
+    container_name: zookeeper
+    restart: on-failure
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.10
+    hostname: zookeeper
+    environment:
+      - ZOO_PORT_NUMBER=2181
+      - ZOO_SERVER_ID=1
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    volumes:
+      - zookeeper-data:/bitnami/zookeeper
+      
+  nifi-01:
+    image: apache/nifi:1.16.2
+    container_name: nifi-01
+    user: root
+    restart: on-failure
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.18
+    hostname: nifi-01
+    volumes:
+      - nifi-01-database:/opt/nifi/nifi-current/database_repository
+      - nifi-01-flowfile:/opt/nifi/nifi-current/flowfile_repository
+      - nifi-01-content:/opt/nifi/nifi-current/content_repository
+      - nifi-01-provenance:/opt/nifi/nifi-current/provenance_repository
+      - nifi-01-state:/opt/nifi/nifi-current/state
+      - nifi-01-logs:/opt/nifi/nifi-current/logs
+    environment:
+      - NIFI_WEB_HTTP_PORT=8080
+      - NIFI_CLUSTER_IS_NODE=true
+      - NIFI_CLUSTER_NODE_PROTOCOL_PORT=8082
+      - NIFI_ZK_CONNECT_STRING=zookeeper:2181
+      - NIFI_ELECTION_MAX_WAIT=30 sec
+      - NIFI_SENSITIVE_PROPS_KEY='12345678901234567890A'
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://nifi-01:8080/nifi/" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      
+  nifi-02:
+    image: apache/nifi:1.16.2
+    container_name: nifi-02
+    user: root
+    restart: on-failure
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.22
+    hostname: nifi-02
+    volumes:
+      - nifi-02-database:/opt/nifi/nifi-current/database_repository
+      - nifi-02-flowfile:/opt/nifi/nifi-current/flowfile_repository
+      - nifi-02-content:/opt/nifi/nifi-current/content_repository
+      - nifi-02-provenance:/opt/nifi/nifi-current/provenance_repository
+      - nifi-02-state:/opt/nifi/nifi-current/state
+      - nifi-02-logs:/opt/nifi/nifi-current/logs
+    environment:
+      - NIFI_WEB_HTTP_PORT=8080
+      - NIFI_CLUSTER_IS_NODE=true
+      - NIFI_CLUSTER_NODE_PROTOCOL_PORT=8082
+      - NIFI_ZK_CONNECT_STRING=zookeeper:2181
+      - NIFI_ELECTION_MAX_WAIT=30 sec
+      - NIFI_SENSITIVE_PROPS_KEY='12345678901234567890A'
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://nifi-02:8080/nifi/" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      
+  nifi-03:
+    image: apache/nifi:1.16.2
+    container_name: nifi-03
+    user: root
+    restart: on-failure
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.23
+    hostname: nifi-03
+    volumes:
+      - nifi-03-database:/opt/nifi/nifi-current/database_repository
+      - nifi-03-flowfile:/opt/nifi/nifi-current/flowfile_repository
+      - nifi-03-content:/opt/nifi/nifi-current/content_repository
+      - nifi-03-provenance:/opt/nifi/nifi-current/provenance_repository
+      - nifi-03-state:/opt/nifi/nifi-current/state
+      - nifi-03-logs:/opt/nifi/nifi-current/logs
+    environment:
+      - NIFI_WEB_HTTP_PORT=8080
+      - NIFI_CLUSTER_IS_NODE=true
+      - NIFI_CLUSTER_NODE_PROTOCOL_PORT=8082
+      - NIFI_ZK_CONNECT_STRING=zookeeper:2181
+      - NIFI_ELECTION_MAX_WAIT=30 sec
+      - NIFI_SENSITIVE_PROPS_KEY='12345678901234567890A'
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://nifi-03:8080/nifi/" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      
+networks:
+  cluster-network:
+    name: cluster-network
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/16
+          gateway: 172.18.0.1
+          
+volumes:
+  zookeeper-data:
+    name: zookeeper-data
+    driver: local
+  nifi-01-database:
+    name: nifi-01-database
+    driver: local
+  nifi-01-flowfile:
+    name: nifi-01-flowfile
+    driver: local
+  nifi-01-content:
+    name: nifi-01-content
+    driver: local
+  nifi-01-provenance:
+    name: nifi-01-provenance
+    driver: local
+  nifi-01-state:
+    name: nifi-01-state
+    driver: local
+  nifi-01-logs:
+    name: nifi-01-logs
+    driver: local
+  nifi-02-database:
+    name: nifi-02-database
+    driver: local
+  nifi-02-flowfile:
+    name: nifi-02-flowfile
+    driver: local
+  nifi-02-content:
+    name: nifi-02-content
+    driver: local
+  nifi-02-provenance:
+    name: nifi-02-provenance
+    driver: local
+  nifi-02-state:
+    name: nifi-02-state
+    driver: local
+  nifi-02-logs:
+    name: nifi-02-logs
+    driver: local
+  nifi-03-database:
+    name: nifi-03-database
+    driver: local
+  nifi-03-flowfile:
+    name: nifi-03-flowfile
+    driver: local
+  nifi-03-content:
+    name: nifi-03-content
+    driver: local
+  nifi-03-provenance:
+    name: nifi-03-provenance
+    driver: local
+  nifi-03-state:
+    name: nifi-03-state
+    driver: local
+  nifi-03-logs:
+    name: nifi-03-logs
+    driver: local

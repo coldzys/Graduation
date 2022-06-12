@@ -1,8 +1,6 @@
 package simulator.localfile;
 
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,7 +10,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class LocalfileMiner {
-    private static final Logger logger = LoggerFactory.getLogger(LocalfileMiner.class);
     private static final Random rd = new Random();
     private String latestName = "";
 

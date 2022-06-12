@@ -10,7 +10,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class PostgresMiner {
-    private static final Logger logger = LoggerFactory.getLogger(PostgresMiner.class);
     private static final Random rd = new Random();
     private static final String className = "org.postgresql.Driver";
     private static final String url = "jdbc:postgresql://172.18.0.19:5432/postgres";

@@ -5,7 +5,7 @@ import simulator.KProducer;
 import java.util.concurrent.BlockingQueue;
 
 public class StreamMain {
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         KProducer producer = new KProducer();
         StreamMiner streamMiner = new StreamMiner();
         String path = args[0];
@@ -14,7 +14,6 @@ public class StreamMain {
         while (true) {
             BlockingQueue<String> messages = streamMiner.get(path);
             producer.run(topic, messages, throughput);
-            streamMiner.waiting(10000L);
         }
     }
 }

@@ -13,7 +13,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Stream;
 
 public class StreamMiner {
-    private static final Logger logger = LoggerFactory.getLogger(StreamMiner.class);
     private static final Random rd = new Random();
     private int cnt = 0;
 

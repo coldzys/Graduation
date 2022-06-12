@@ -5,24 +5,16 @@ spark = SparkSession.builder \
     .appName("Write to Elasticsearch") \
     .getOrCreate()
 
-columns = ["language", "users_count"]
-data = [("Java", "20000"), ("Python", "100000"), ("Scala", "3000")]
-
-df = spark.createDataFrame(data).toDF(*columns)
+df = spark.read.parquet("hdfs://172.18.0.14:9000/usr/graduation/warehouse/stream/*.parquet")
 
 conf = {
     "index": "spark",
-    "doc_type": "docs",
-    "host": "172.18.0.21",
+    "host": "172.18.0.19",
     "port": "9200"
 }
 
-df.write.format(
-    "es"
-).option(
-    "es.resource", '%s/%s' % (conf['index'], conf['doc_type'])
-).option(
-    "es.nodes", conf['host']
-).option(
-    "es.port", conf['port']
-).save()
+df.write.format("es") \
+    .option("es.resource", '%s' % conf['index']) \
+    .option("es.nodes", conf['host']) \
+    .option("es.port", conf['port']) \
+    .save()

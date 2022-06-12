@@ -5,7 +5,7 @@ import simulator.KProducer;
 import java.util.concurrent.BlockingQueue;
 
 public class PostgresMain {
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         KProducer producer = new KProducer();
         PostgresMiner postgresMiner = new PostgresMiner();
         String tableName = args[0];
@@ -14,7 +14,6 @@ public class PostgresMain {
         while (true) {
             BlockingQueue<String> messages = postgresMiner.get(tableName);
             producer.run(topic, messages, throughput);
-            postgresMiner.waiting(10000L);
         }
     }
 }
