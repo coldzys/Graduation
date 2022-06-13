@@ -1,52 +1,23 @@
 import streamlit as st
-from elasticsearch import Elasticsearch
-import pandas as pd
-import plotly.express as px
+import streamlit.components.v1 as components
 
-es = Elasticsearch()
+one, two = st.columns([1, 1])
+with one:
+    search = st.button("Search")
+with two:
+    visualize = st.button("Visualize")
 
-st.sidebar.title("Search engine")
-
-with st.sidebar:
-    with st.form(key="input-form"):
-        state = st.text_input("Insert state")
-        year = st.number_input("Insert year", step=1)
-        submitted = st.form_submit_button("Submit")
-        if submitted:
-            results = es.search(
-                index="cars",
-                body={
-                    "query": {
-                        "bool": {
-                            "must": [
-                                {
-                                    "match": {
-                                        "State": state
-                                    }
-                                },
-                                {
-                                    "match": {
-                                        "Year": year
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                size=1000
-            )
-
-try:
-    data = [result["_source"] for result in results["hits"]["hits"]]
-    df = pd.DataFrame.from_records(data)
-    st.markdown("### Result")
-    st.markdown("""---""")
-    st.write(df)
-    df2 = df.groupby("City")["City"].count().reset_index(name="Count").sort_values("Count", ascending=False).head(25)
-    fig = px.bar(df2, x="City", y="Count")
-    st.markdown("""---""")
-    st.markdown("### City bar chart")
-    st.markdown("""---""")
-    st.plotly_chart(fig)
-except:
-    st.write("Please execute any query to display data")
+if visualize:
+    components.iframe(
+        src="http://172.18.0.20:5601/app/r/s/better-fat-airport",
+        width=1200,
+        height=1600,
+        scrolling=True
+    )
+elif search:
+    components.iframe(
+        src="http://172.18.0.20:5601/app/discover#/view/2c1ae350-eb0b-11ec-8658-e383fd259a14?_g=(filters%3A!()%2CrefreshInterval%3A(pause%3A!t%2Cvalue%3A0)%2Ctime%3A(from%3Anow-30m%2Cto%3Anow))",
+        width=1200,
+        height=1600,
+        scrolling=True
+    )

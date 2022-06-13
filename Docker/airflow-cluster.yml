@@ -1,0 +1,72 @@
+version: "3.8"
+
+services:
+  postgres-airflow:
+    image: docker.io/bitnami/postgresql:14.3.0
+    container_name: postgres-airflow
+    restart: on-failure
+    hostname: postgres-airflow
+    environment:
+      - POSTGRESQL_DATABASE=airflow
+      - POSTGRESQL_USERNAME=airflow
+      - POSTGRESQL_PASSWORD=airflow
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - postgres-airflow-data:/bitnami/postgresql
+  
+  redis:
+    image: bitnami/redis:7.0.2
+    container_name: redis
+    restart: on-failure
+    hostname: redis
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - redis-data:/bitnami
+  
+  airflow-scheduler:
+    image: bitnami/airflow-scheduler:2.3.2
+    container_name: airflow-scheduler
+    restart: on-failure
+    hostname: airflow-scheduler
+    environment:
+      - AIRFLOW_DATABASE_NAME=airflow
+      - AIRFLOW_DATABASE_USERNAME=airflow
+      - AIRFLOW_DATABASE_PASSWORD=airflow
+      - AIRFLOW_EXECUTOR=CeleryExecutor
+      - AIRFLOW_WEBSERVER_HOST=airflow
+  
+  airflow-worker:
+    image: bitnami/airflow-worker:2.3.2
+    container_name: airflow-worker
+    restart: on-failure
+    hostname: airflow-worker
+    environment:
+      - AIRFLOW_DATABASE_NAME=airflow
+      - AIRFLOW_DATABASE_USERNAME=airflow
+      - AIRFLOW_DATABASE_PASSWORD=airflow
+      - AIRFLOW_EXECUTOR=CeleryExecutor
+      - AIRFLOW_WEBSERVER_HOST=airflow
+      - AIRFLOW_PASSWORD=airflow
+      - AIRFLOW_USERNAME=airflow
+  
+  airflow:
+    image: bitnami/airflow:2.3.2
+    container_name: airflow
+    restart: on-failure
+    hostname: airflow
+    environment:
+      - AIRFLOW_DATABASE_NAME=airflow
+      - AIRFLOW_DATABASE_USERNAME=airflow
+      - AIRFLOW_DATABASE_PASSWORD=airflow
+      - AIRFLOW_EXECUTOR=CeleryExecutor
+    ports:
+      - '8080:8080'
+volumes:
+  postgres-airflow-data:
+    name: postgres-airflow-data
+    driver: local
+  redis-data:
+    name: redis-data
+    driver: local
+
