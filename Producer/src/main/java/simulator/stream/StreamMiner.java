@@ -1,8 +1,6 @@
 package simulator.stream;
 
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,20 +20,36 @@ public class StreamMiner {
 
     public BlockingQueue<String> get(String path) {
         BlockingQueue<String> messages = new LinkedBlockingQueue<>();
-        String[] columnNames = {"price", "year", "mileage", "city", "state", "vin", "make", "model"};
+        String[] columnNames = {
+                "level",
+                "experience",
+                "job_field",
+                "update_time",
+                "location",
+                "degree",
+                "sex",
+                "age",
+                "working_form",
+                "company_name",
+                "job_name"
+        };
         try (Stream<String> stream = Files.lines(Paths.get(path))) {
-            int limit = rd.nextInt(10000);
+            int limit = rd.nextInt(250);
             stream.skip(cnt).limit(limit).forEach(message -> {
-                String[] values = message.split(",");
+                String[] values = message.split("@");
                 if (values.length == columnNames.length) {
                     JSONObject json = new JSONObject();
                     for (int i = 0; i < values.length; ++i) {
-                        json.put(columnNames[i], values[i].trim());
+                        json.put(
+                                columnNames[i],
+                                values[i] == null ? "" : values[i].trim()
+                        );
                     }
                     messages.add(json.toString());
                 }
             });
             cnt += limit;
+            if (messages.size() == 0) System.exit(0);
             return messages;
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);

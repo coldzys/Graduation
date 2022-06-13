@@ -1,1 +1,1 @@
-java -jar stream-producer.jar stream/stream-data.csv stream 500000
+java -jar stream-producer.jar stream/tuoitre-raw.csv stream 5000

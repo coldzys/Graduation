@@ -1,0 +1,340 @@
+version: "3.8"
+
+services:
+  # Kafka goes here
+  zookeeper:
+    image: bitnami/zookeeper:3.8.0
+    container_name: zookeeper
+    restart: on-failure
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.10
+    hostname: zookeeper
+    environment:
+      - ZOO_PORT_NUMBER=2181
+      - ZOO_SERVER_ID=1
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    volumes:
+      - zookeeper-data:/bitnami/zookeeper
+      
+  kafka-01:
+    image: bitnami/kafka:3.2.0
+    container_name: kafka-01
+    restart: on-failure
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.11
+    hostname: kafka-01
+    environment:
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=LISTENER_DOCKER_INTERNAL://:19092,LISTENER_DOCKER_EXTERNAL://:29092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=LISTENER_DOCKER_INTERNAL://kafka-01:19092,LISTENER_DOCKER_EXTERNAL://172.18.0.11:29092
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=LISTENER_DOCKER_INTERNAL
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_BROKER_ID=1
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    volumes:
+      - kafka-01-data:/bitnami/kafka
+    depends_on:
+      - zookeeper
+
+  kafka-02:
+    image: bitnami/kafka:3.2.0
+    container_name: kafka-02
+    restart: on-failure
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.12
+    hostname: kafka-02
+    environment:
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=LISTENER_DOCKER_INTERNAL://:19093,LISTENER_DOCKER_EXTERNAL://:29093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=LISTENER_DOCKER_INTERNAL://kafka-02:19093,LISTENER_DOCKER_EXTERNAL://172.18.0.12:29093
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=LISTENER_DOCKER_INTERNAL
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_BROKER_ID=2
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    volumes:
+      - kafka-02-data:/bitnami/kafka
+    depends_on:
+      - zookeeper
+
+  kafka-03:
+    image: bitnami/kafka:3.2.0
+    container_name: kafka-03
+    restart: on-failure
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.13
+    hostname: kafka-03
+    environment:
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=LISTENER_DOCKER_INTERNAL://:19094,LISTENER_DOCKER_EXTERNAL://:29094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=LISTENER_DOCKER_INTERNAL://kafka-03:19094,LISTENER_DOCKER_EXTERNAL://172.18.0.13:29094
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=LISTENER_DOCKER_INTERNAL
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_BROKER_ID=3
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    volumes:
+      - kafka-03-data:/bitnami/kafka
+    depends_on:
+      - zookeeper
+
+  kafka-manager:
+    image: hlebalbau/kafka-manager:3.0.0.5
+    container_name: kafka-manager
+    restart: on-failure
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.14
+    hostname: kafka-manager
+    environment:
+      ZK_HOSTS: "zookeeper:2181"
+      APPLICATION_SECRET: "random-secret"
+    command: -Dpidfile.path=/dev/null
+    depends_on:
+      - "zookeeper"
+      - "kafka-01"
+      - "kafka-02"
+      - "kafka-03"
+      
+  # Databases go here
+  postgres:
+    image: postgres:14.3
+    container_name: postgres
+    restart: on-failure
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.15
+    hostname: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      
+  nifi-01:
+    image: apache/nifi:1.16.2
+    container_name: nifi-01
+    user: root
+    restart: on-failure
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.18
+    hostname: nifi-01
+    volumes:
+      - nifi-01-database:/opt/nifi/nifi-current/database_repository
+      - nifi-01-flowfile:/opt/nifi/nifi-current/flowfile_repository
+      - nifi-01-content:/opt/nifi/nifi-current/content_repository
+      - nifi-01-provenance:/opt/nifi/nifi-current/provenance_repository
+      - nifi-01-state:/opt/nifi/nifi-current/state
+      - nifi-01-logs:/opt/nifi/nifi-current/logs
+    environment:
+      - NIFI_WEB_HTTP_PORT=8080
+      - NIFI_CLUSTER_IS_NODE=true
+      - NIFI_CLUSTER_NODE_PROTOCOL_PORT=8082
+      - NIFI_ZK_CONNECT_STRING=zookeeper:2181
+      - NIFI_ELECTION_MAX_WAIT=120 sec
+      - NIFI_SENSITIVE_PROPS_KEY='12345678901234567890A'
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://nifi-01:8080/nifi/" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      
+  nifi-02:
+    image: apache/nifi:1.16.2
+    container_name: nifi-02
+    user: root
+    restart: on-failure
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.22
+    hostname: nifi-02
+    volumes:
+      - nifi-02-database:/opt/nifi/nifi-current/database_repository
+      - nifi-02-flowfile:/opt/nifi/nifi-current/flowfile_repository
+      - nifi-02-content:/opt/nifi/nifi-current/content_repository
+      - nifi-02-provenance:/opt/nifi/nifi-current/provenance_repository
+      - nifi-02-state:/opt/nifi/nifi-current/state
+      - nifi-02-logs:/opt/nifi/nifi-current/logs
+    environment:
+      - NIFI_WEB_HTTP_PORT=8080
+      - NIFI_CLUSTER_IS_NODE=true
+      - NIFI_CLUSTER_NODE_PROTOCOL_PORT=8082
+      - NIFI_ZK_CONNECT_STRING=zookeeper:2181
+      - NIFI_ELECTION_MAX_WAIT=120 sec
+      - NIFI_SENSITIVE_PROPS_KEY='12345678901234567890A'
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://nifi-02:8080/nifi/" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      
+  nifi-03:
+    image: apache/nifi:1.16.2
+    container_name: nifi-03
+    user: root
+    restart: on-failure
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.23
+    hostname: nifi-03
+    volumes:
+      - nifi-03-database:/opt/nifi/nifi-current/database_repository
+      - nifi-03-flowfile:/opt/nifi/nifi-current/flowfile_repository
+      - nifi-03-content:/opt/nifi/nifi-current/content_repository
+      - nifi-03-provenance:/opt/nifi/nifi-current/provenance_repository
+      - nifi-03-state:/opt/nifi/nifi-current/state
+      - nifi-03-logs:/opt/nifi/nifi-current/logs
+    environment:
+      - NIFI_WEB_HTTP_PORT=8080
+      - NIFI_CLUSTER_IS_NODE=true
+      - NIFI_CLUSTER_NODE_PROTOCOL_PORT=8082
+      - NIFI_ZK_CONNECT_STRING=zookeeper:2181
+      - NIFI_ELECTION_MAX_WAIT=120 sec
+      - NIFI_SENSITIVE_PROPS_KEY='12345678901234567890A'
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://nifi-03:8080/nifi/" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3      
+
+  namenode:
+    image: fatcat2me/hadoop-namenode:3.3.3
+    container_name: namenode
+    restart: on-failure
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.16
+    hostname: namenode
+    volumes:
+      - namenode-data:/hadoop/dfs/name
+    environment:
+      - CLUSTER_NAME=HADOOP-CLUSTER
+    env_file:
+      - ./hadoop.env
+
+  datanode:
+    image: fatcat2me/hadoop-datanode:3.3.3
+    container_name: datanode
+    restart: on-failure
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.17
+    hostname: datanode
+    volumes:
+      - datanode-data:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./hadoop.env
+
+  # Monitoring goes here
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.39.3
+    container_name: cadvisor
+    user: root
+    restart: always
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.20
+    hostname: cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      
+networks:
+  cluster-network:
+    name: cluster-network
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/16
+          gateway: 172.18.0.1
+
+volumes:
+  zookeeper-data:
+    name: zookeeper-data
+    driver: local
+  kafka-01-data:
+    name: kafka-01-data
+    driver: local
+  kafka-02-data:
+    name: kafka-02-data
+    driver: local
+  kafka-03-data:
+    name: kafka-03-data
+    driver: local
+  postgres-data:
+    name: postgres-data
+    driver: local
+  nifi-01-database:
+    name: nifi-01-database
+    driver: local
+  nifi-01-flowfile:
+    name: nifi-01-flowfile
+    driver: local
+  nifi-01-content:
+    name: nifi-01-content
+    driver: local
+  nifi-01-provenance:
+    name: nifi-01-provenance
+    driver: local
+  nifi-01-state:
+    name: nifi-01-state
+    driver: local
+  nifi-01-logs:
+    name: nifi-01-logs
+    driver: local
+  nifi-02-database:
+    name: nifi-02-database
+    driver: local
+  nifi-02-flowfile:
+    name: nifi-02-flowfile
+    driver: local
+  nifi-02-content:
+    name: nifi-02-content
+    driver: local
+  nifi-02-provenance:
+    name: nifi-02-provenance
+    driver: local
+  nifi-02-state:
+    name: nifi-02-state
+    driver: local
+  nifi-02-logs:
+    name: nifi-02-logs
+    driver: local
+  nifi-03-database:
+    name: nifi-03-database
+    driver: local
+  nifi-03-flowfile:
+    name: nifi-03-flowfile
+    driver: local
+  nifi-03-content:
+    name: nifi-03-content
+    driver: local
+  nifi-03-provenance:
+    name: nifi-03-provenance
+    driver: local
+  nifi-03-state:
+    name: nifi-03-state
+    driver: local
+  nifi-03-logs:
+    name: nifi-03-logs
+    driver: local
+  namenode-data:
+    name: namenode-data
+    driver: local
+  datanode-data:
+    name: datanode-data
+    driver: local

@@ -117,6 +117,7 @@ services:
       
   spark-worker:
     image: bitnami/spark:3.2.1
+    user: root
     container_name: spark-worker
     restart: always
     networks:

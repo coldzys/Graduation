@@ -1,1 +1,1 @@
-java -jar postgres-producer.jar cars postgres 500000
+java -jar postgres-producer.jar careerbuilder postgres 2500
