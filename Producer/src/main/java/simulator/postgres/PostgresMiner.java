@@ -10,7 +10,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class PostgresMiner {
     private static final Random rd = new Random();
     private static final String className = "org.postgresql.Driver";
-    private static final String url = "jdbc:postgresql://172.18.0.13:5432/postgres";
+    private static final String url = "jdbc:postgresql://172.18.0.15:5432/postgres";
     private static final String username = "postgres";
     private static final String password = "postgres";
     private int cnt = 0;
@@ -38,7 +38,7 @@ public class PostgresMiner {
                 messages.add(json.toString());
                 ++cnt;
             }
-            if (messages.size() == 0) System.exit(0);
+            if (messages.size() == 0) cnt = 0;
             return messages;
         } catch (SQLException se) {
             throw new RuntimeException(se);

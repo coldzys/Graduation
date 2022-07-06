@@ -49,7 +49,7 @@ public class StreamMiner {
                 }
             });
             cnt += limit;
-            if (messages.size() == 0) System.exit(0);
+            if (messages.size() == 0) cnt = 0;
             return messages;
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);

@@ -95,8 +95,8 @@ services:
     depends_on:
       - "zookeeper"
       - "kafka-01"
-      - "kafka-02"
-      - "kafka-03"
+#      - "kafka-02"
+#      - "kafka-03"
       
   # Databases go here
   postgres:
@@ -174,37 +174,37 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
-      
-  nifi-03:
-    image: apache/nifi:1.16.2
-    container_name: nifi-03
-    user: root
-    restart: on-failure
-    networks:
-      cluster-network:
-        ipv4_address: 172.18.0.23
-    hostname: nifi-03
-    volumes:
-      - nifi-03-database:/opt/nifi/nifi-current/database_repository
-      - nifi-03-flowfile:/opt/nifi/nifi-current/flowfile_repository
-      - nifi-03-content:/opt/nifi/nifi-current/content_repository
-      - nifi-03-provenance:/opt/nifi/nifi-current/provenance_repository
-      - nifi-03-state:/opt/nifi/nifi-current/state
-      - nifi-03-logs:/opt/nifi/nifi-current/logs
-    environment:
-      - NIFI_WEB_HTTP_PORT=8080
-      - NIFI_CLUSTER_IS_NODE=true
-      - NIFI_CLUSTER_NODE_PROTOCOL_PORT=8082
-      - NIFI_ZK_CONNECT_STRING=zookeeper:2181
-      - NIFI_ELECTION_MAX_WAIT=120 sec
-      - NIFI_SENSITIVE_PROPS_KEY='12345678901234567890A'
-    depends_on:
-      - zookeeper
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://nifi-03:8080/nifi/" ]
-      interval: 30s
-      timeout: 20s
-      retries: 3      
+#      
+#  nifi-03:
+#    image: apache/nifi:1.16.2
+#    container_name: nifi-03
+#    user: root
+#    restart: on-failure
+#    networks:
+#      cluster-network:
+#        ipv4_address: 172.18.0.23
+#    hostname: nifi-03
+#    volumes:
+#      - nifi-03-database:/opt/nifi/nifi-current/database_repository
+#      - nifi-03-flowfile:/opt/nifi/nifi-current/flowfile_repository
+#      - nifi-03-content:/opt/nifi/nifi-current/content_repository
+#      - nifi-03-provenance:/opt/nifi/nifi-current/provenance_repository
+#      - nifi-03-state:/opt/nifi/nifi-current/state
+#      - nifi-03-logs:/opt/nifi/nifi-current/logs
+#    environment:
+#      - NIFI_WEB_HTTP_PORT=8080
+#      - NIFI_CLUSTER_IS_NODE=true
+#      - NIFI_CLUSTER_NODE_PROTOCOL_PORT=8082
+#      - NIFI_ZK_CONNECT_STRING=zookeeper:2181
+#      - NIFI_ELECTION_MAX_WAIT=120 sec
+#      - NIFI_SENSITIVE_PROPS_KEY='12345678901234567890A'
+#    depends_on:
+#      - zookeeper
+#    healthcheck:
+#      test: [ "CMD", "curl", "-f", "http://nifi-03:8080/nifi/" ]
+#      interval: 30s
+#      timeout: 20s
+#      retries: 3      
 
   namenode:
     image: fatcat2me/hadoop-namenode:3.3.3
@@ -251,7 +251,106 @@ services:
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
-      
+
+  # Spark goes here
+  spark-master:
+    image: bitnami/spark:3.2.1
+    user: root
+    container_name: spark-master
+    restart: always
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.21
+    ports:
+      - "7077:7077"
+    hostname: spark-master
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+
+  spark-worker-01:
+    image: bitnami/spark:3.2.1
+    container_name: spark-worker-01
+    restart: always
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.22
+    hostname: spark-worker-01
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=2
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    depends_on:
+      - spark-master
+
+  spark-worker-02:
+    image: bitnami/spark:3.2.1
+    container_name: spark-worker-02
+    restart: always
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.23
+    hostname: spark-worker-02
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=2
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    depends_on:
+      - spark-master
+
+  spark-worker-03:
+    image: bitnami/spark:3.2.1
+    container_name: spark-worker-03
+    restart: always
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.24
+    hostname: spark-worker-03
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=2
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    depends_on:
+      - spark-master
+
+  elasticsearch:
+    image: bitnami/elasticsearch:8.2.2
+    container_name: elasticsearch
+    restart: on-failure
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.25
+    hostname: elasticsearch
+
+  kibana:
+    image: docker.io/bitnami/kibana:8.2.2
+    container_name: kibana
+    restart: on-failure
+    networks:
+      cluster-network:
+        ipv4_address: 172.18.0.26
+    hostname: kibana
+    depends_on:
+      - elasticsearch
+
 networks:
   cluster-network:
     name: cluster-network

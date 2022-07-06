@@ -1,1 +1,1 @@
-java -jar postgres-producer.jar careerbuilder postgres 2500
+java -jar postgres-producer.jar careerbuilder postgres 5000

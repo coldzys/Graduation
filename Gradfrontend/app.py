@@ -1,23 +1,19 @@
 import streamlit as st
-import streamlit.components.v1 as components
+import numpy as np
+import matplotlib.pylab as plt
 
-one, two = st.columns([1, 1])
-with one:
-    search = st.button("Search")
-with two:
-    visualize = st.button("Visualize")
+st.title("Simulation[tm]")
+st.write("Here is our super important simulation")
 
-if visualize:
-    components.iframe(
-        src="http://172.18.0.20:5601/app/r/s/better-fat-airport",
-        width=1200,
-        height=1600,
-        scrolling=True
-    )
-elif search:
-    components.iframe(
-        src="http://172.18.0.20:5601/app/discover#/view/2c1ae350-eb0b-11ec-8658-e383fd259a14?_g=(filters%3A!()%2CrefreshInterval%3A(pause%3A!t%2Cvalue%3A0)%2Ctime%3A(from%3Anow-30m%2Cto%3Anow))",
-        width=1200,
-        height=1600,
-        scrolling=True
-    )
+st.sidebar.markdown("## Controls")
+st.sidebar.markdown("You can **change** the values to change the *chart*.")
+x = st.sidebar.slider('Slope', min_value=0.01, max_value=0.10, step=0.01)
+y = st.sidebar.slider('Noise', min_value=0.01, max_value=0.10, step=0.01)
+
+st.write(f"x={x} y={y}")
+values = np.cumprod(1 + np.random.normal(x, y, (100, 10)), axis=0)
+
+for i in range(values.shape[1]):
+    plt.plot(values[:, i])
+
+st.pyplot()

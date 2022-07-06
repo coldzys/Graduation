@@ -2,6 +2,7 @@ version: "3.8"
 
 services:
   # Kafka goes here
+  
   zookeeper:
     image: bitnami/zookeeper:3.8.0
     container_name: zookeeper
@@ -103,7 +104,7 @@ services:
     image: bitnami/spark:3.2.1
     user: root
     container_name: spark-master
-    restart: always
+    restart: on-failure
     networks:
       cluster-network:
         ipv4_address: 172.18.0.16
@@ -196,7 +197,7 @@ services:
     image: gcr.io/cadvisor/cadvisor:v0.39.3
     container_name: cadvisor
     user: root
-    restart: always
+    restart: on-failure
     networks:
       cluster-network:
         ipv4_address: 172.18.0.21

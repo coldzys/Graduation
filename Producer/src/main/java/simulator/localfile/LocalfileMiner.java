@@ -65,7 +65,7 @@ public class LocalfileMiner {
                 if (rd.nextBoolean()) break;
             }
         }
-        if (messages.size() == 0) System.exit(0);
+        if (messages.size() == 0) latestName = "";
         return messages;
     }
 }

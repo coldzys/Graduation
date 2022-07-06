@@ -1,1 +1,3 @@
-java -jar localfile-producer.jar localfile localfile 5000
+today=$(date +'%Y-%m-%d')
+
+java -jar localfile-producer.jar localfile/$today localfile 5000

@@ -45,9 +45,9 @@ def sex_check(sex: str):
 
 
 spark = SparkSession.builder.config("spark.sql.debug.maxToStringFields", 100000).getOrCreate()
-hdfs_address = "172.18.0.14:9000"
+hdfs_address = "172.18.0.16:9000"
 today = datetime.today().strftime('%Y-%m-%d')
-df = spark.read.parquet(f"hdfs://{hdfs_address}/usr/student/warehouse/careerbuilder/{today}/*.parquet").toPandas()
+df = spark.read.parquet(f"hdfs://{hdfs_address}/usr/student/warehouse/careerbuilder/2022-06-14/*.parquet").toPandas()
 df["update_time"] = pd.to_datetime(df["update_time"], format="%d/%m/%Y").dt.strftime("%Y-%m-%d")
 df["sex"] = df["sex"].apply(sex_check)
 df = df[df["company_name"].str.strip() != ""]
@@ -57,8 +57,8 @@ df["experience"] = df["experience"].apply(experience_check)
 df = spark.createDataFrame(df.astype(str))
 # Elasticsearch configs
 conf = {
-    "index": "careerbuilder",
-    "host": "172.18.0.19",
+    "index": "job-careerbuilder",
+    "host": "172.18.0.25",
     "port": "9200"
 }
 
