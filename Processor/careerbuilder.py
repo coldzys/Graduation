@@ -6,7 +6,8 @@ from datetime import datetime
 def salary_check(salary: str):
     if salary.strip() == "Cạnh tranh" or salary.strip() == "":
         return ""
-    salary = salary.replace("Trên", "").replace("Dưới", "").replace("Tr", "").strip()
+    salary = salary.replace("Trên", "").replace(
+        "Dưới", "").replace("Tr", "").strip()
     values = salary.split()
     if len(values) == 2:
         if values[1] == "VND":
@@ -47,7 +48,7 @@ def sex_check(sex: str):
 spark = SparkSession.builder.config("spark.sql.debug.maxToStringFields", 100000).getOrCreate()
 hdfs_address = "172.18.0.16:9000"
 today = datetime.today().strftime('%Y-%m-%d')
-df = spark.read.parquet(f"hdfs://{hdfs_address}/usr/student/warehouse/careerbuilder/2022-06-14/*.parquet").toPandas()
+df = spark.read.parquet(f"hdfs://{hdfs_address}/usr/student/warehouse/careerbuilder/{today}/*.parquet").toPandas()
 df["update_time"] = pd.to_datetime(df["update_time"], format="%d/%m/%Y").dt.strftime("%Y-%m-%d")
 df["sex"] = df["sex"].apply(sex_check)
 df = df[df["company_name"].str.strip() != ""]
