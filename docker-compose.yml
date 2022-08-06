@@ -41,8 +41,8 @@ services:
       - SPARK_SSL_ENABLED=no
     depends_on:
       - spark-master
-     volumes:
-          - spark-jobs:/spark-jobs:rw
+    volumes:
+      - spark-jobs:/spark-jobs:rw
 
   spark-worker-02:
     image: bitnami/spark:3.2.1
