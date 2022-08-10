@@ -15,10 +15,6 @@ public class LocalfileMiner {
     private static final Random rd = new Random();
     private String latestName = "";
 
-    public void waiting(long time) throws InterruptedException {
-        Thread.sleep(time);
-    }
-
     public BlockingQueue<String> get(String path) {
         File folder = new File(path);
         File[] listOfFiles = folder.listFiles();
@@ -65,7 +61,6 @@ public class LocalfileMiner {
                 if (rd.nextBoolean()) break;
             }
         }
-        if (messages.size() == 0) latestName = "";
         return messages;
     }
 }

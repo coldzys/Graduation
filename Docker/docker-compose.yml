@@ -18,7 +18,7 @@ services:
       - zookeeper-data:/bitnami/zookeeper
 
   kafka-01:
-    image: bitnami/kafka:3.2.0
+    image: bitnami/kafka:3.2.1
     container_name: kafka-01
     restart: on-failure
     networks:
@@ -39,7 +39,7 @@ services:
       - zookeeper
 
   kafka-02:
-    image: bitnami/kafka:3.2.0
+    image: bitnami/kafka:3.2.1
     container_name: kafka-02
     restart: on-failure
     networks:
@@ -60,7 +60,7 @@ services:
       - zookeeper
 
   kafka-03:
-    image: bitnami/kafka:3.2.0
+    image: bitnami/kafka:3.2.1
     container_name: kafka-03
     restart: on-failure
     networks:
@@ -98,9 +98,9 @@ services:
       - "kafka-02"
       - "kafka-03"
 
-  # Databases go here
+  # Database goes here
   postgres:
-    image: postgres:14.3
+    image: postgres:14.4
     container_name: postgres
     restart: on-failure
     networks:
@@ -113,6 +113,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
+  # Hadoop goes here
   namenode:
     image: fatcat2me/hadoop-namenode:3.3.3
     container_name: namenode
@@ -143,8 +144,9 @@ services:
     env_file:
       - ./hadoop.env
 
+  # Nifi goes here
   nifi-01:
-    image: apache/nifi:1.16.2
+    image: apache/nifi:1.17.0
     container_name: nifi-01
     user: root
     restart: on-failure
@@ -175,10 +177,12 @@ services:
       retries: 3
 
   nifi-02:
-    image: apache/nifi:1.16.2
+    image: apache/nifi:1.17.0
     container_name: nifi-02
     user: root
     restart: on-failure
+    profiles:
+      - nifi-02
     networks:
       cluster-network:
         ipv4_address: 172.18.0.19
@@ -206,10 +210,12 @@ services:
       retries: 3
 
   nifi-03:
-    image: apache/nifi:1.16.2
+    image: apache/nifi:1.17.0
     container_name: nifi-03
     user: root
     restart: on-failure
+    profiles:
+      - nifi-03
     networks:
       cluster-network:
         ipv4_address: 172.18.0.20
@@ -238,7 +244,7 @@ services:
 
   # Spark goes here
   spark-master:
-    image: bitnami/spark:3.2.1
+    image: bitnami/spark:3.3.0
     user: root
     container_name: spark-master
     restart: always
@@ -256,7 +262,7 @@ services:
       - SPARK_SSL_ENABLED=no
 
   spark-worker-01:
-    image: bitnami/spark:3.2.1
+    image: bitnami/spark:3.3.0
     container_name: spark-worker-01
     restart: always
     networks:
@@ -276,7 +282,7 @@ services:
       - spark-master
 
   spark-worker-02:
-    image: bitnami/spark:3.2.1
+    image: bitnami/spark:3.3.0
     container_name: spark-worker-02
     restart: always
     networks:
@@ -296,7 +302,7 @@ services:
       - spark-master
 
   spark-worker-03:
-    image: bitnami/spark:3.2.1
+    image: bitnami/spark:3.3.0
     container_name: spark-worker-03
     restart: always
     networks:
@@ -315,8 +321,9 @@ services:
     depends_on:
       - spark-master
 
+  # ELK goes here
   elasticsearch:
-    image: bitnami/elasticsearch:8.2.2
+    image: bitnami/elasticsearch:8.3.3
     container_name: elasticsearch
     restart: on-failure
     networks:
@@ -325,7 +332,7 @@ services:
     hostname: elasticsearch
 
   kibana:
-    image: docker.io/bitnami/kibana:8.2.2
+    image: docker.io/bitnami/kibana:8.3.3
     container_name: kibana
     restart: on-failure
     networks:
@@ -434,6 +441,14 @@ volumes:
   namenode-data:
     name: namenode-data
     driver: local
+    driver_opts:
+      o: "size=10g"
+      device: tmpfs
+      type: tmpfs
   datanode-data:
     name: datanode-data
     driver: local
+    driver_opts:
+      o: "size=20g"
+      device: tmpfs
+      type: tmpfs

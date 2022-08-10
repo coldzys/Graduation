@@ -14,10 +14,6 @@ public class StreamMiner {
     private static final Random rd = new Random();
     private int cnt = 0;
 
-    public void waiting(long time) throws InterruptedException {
-        Thread.sleep(time);
-    }
-
     public BlockingQueue<String> get(String path) {
         BlockingQueue<String> messages = new LinkedBlockingQueue<>();
         String[] columnNames = {
@@ -49,7 +45,6 @@ public class StreamMiner {
                 }
             });
             cnt += limit;
-            if (messages.size() == 0) cnt = 0;
             return messages;
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);

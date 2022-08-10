@@ -15,10 +15,6 @@ public class PostgresMiner {
     private static final String password = "postgres";
     private int cnt = 0;
 
-    public void waiting(long time) throws InterruptedException {
-        Thread.sleep(time);
-    }
-
     public BlockingQueue<String> get(String tableName) {
         try (Connection connection = create()) {
             Statement stmt = connection.createStatement();
@@ -38,7 +34,6 @@ public class PostgresMiner {
                 messages.add(json.toString());
                 ++cnt;
             }
-            if (messages.size() == 0) cnt = 0;
             return messages;
         } catch (SQLException se) {
             throw new RuntimeException(se);
